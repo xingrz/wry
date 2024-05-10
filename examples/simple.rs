@@ -34,7 +34,22 @@ fn main() -> wry::Result<()> {
     WebViewBuilder::new_gtk(vbox)
   };
 
-  let _webview = builder.with_url("http://tauri.app").build()?;
+  let _webview = builder
+    .with_url("http://tauri.app")
+    .with_file_drop_handler(|e| {
+      match e {
+        wry::FileDropEvent::Hovered { paths, position } => {
+          println!("Hovered: {position:?} {paths:?} ")
+        }
+        wry::FileDropEvent::Dropped { paths, position } => {
+          println!("Dropped: {position:?} {paths:?} ")
+        }
+        wry::FileDropEvent::Cancelled => println!("Cancelled"),
+        _ => {}
+      }
+      true
+    })
+    .build()?;
 
   event_loop.run(move |event, _, control_flow| {
     *control_flow = ControlFlow::Wait;
