@@ -50,6 +50,7 @@ pub(crate) fn connect_drag_event(
   let listener_ref = listener.clone();
   let w = window.clone();
   webview.connect_drag_leave(move |_, _, time| {
+    println!("drag_leave, time: {}", time);
     if time == 0 {
       // The user cancelled the drag n drop
       listener_ref.0(&w, FileDropEvent::Cancelled);
