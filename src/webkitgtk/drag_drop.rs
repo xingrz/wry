@@ -65,10 +65,12 @@ pub(crate) fn connect_drag_event(webview: &WebView, handler: Box<dyn Fn(DragDrop
   {
     let controller = controller.clone();
     webview.connect_drag_data_received(move |_, _, _, _, data, info, _| {
+      println!("drag data received info: {}", info);
       if info == 2 {
         let uris = data.uris();
         let paths = uris.iter().map(path_buf_from_uri).collect::<Vec<_>>();
         controller.enter();
+        println!("entered with paths: {:?}", paths);
         controller.call(DragDropEvent::Enter {
           paths: paths.clone(),
           position: controller.position.get(),
@@ -78,23 +80,27 @@ pub(crate) fn connect_drag_event(webview: &WebView, handler: Box<dyn Fn(DragDrop
     });
   }
 
-  {
-    let controller = controller.clone();
-    webview.connect_drag_motion(move |_, _, x, y, _| {
-      if controller.has_entered() {
-        controller.call(DragDropEvent::Over { position: (x, y) });
-      } else {
-        controller.store_position((x, y));
-      }
-      false
-    });
-  }
+  // {
+  //   let controller = controller.clone();
+  //   webview.connect_drag_motion(move |_, _, x, y, _| {
+  //     println!("drag motion at x: {}, y: {}", x, y);
+  //     if controller.has_entered() {
+  //       controller.call(DragDropEvent::Over { position: (x, y) });
+  //     } else {
+  //       controller.store_position((x, y));
+  //     }
+  //     false
+  //   });
+  // }
 
   {
     let controller = controller.clone();
     webview.connect_drag_drop(move |_, _, x, y, _| {
+      println!("drag drop at x: {}, y: {}", x, y);
       if controller.has_entered() {
+        println!("has entered");
         if let Some(paths) = controller.take_paths() {
+          println!("has paths");
           controller.leave();
           return controller.call(DragDropEvent::Drop {
             paths,
@@ -108,10 +114,28 @@ pub(crate) fn connect_drag_event(webview: &WebView, handler: Box<dyn Fn(DragDrop
   }
 
   webview.connect_drag_leave(move |_, _, time| {
+    println!("drag leave time: {}", time);
     if time == 0 {
       controller.leave();
       controller.call(DragDropEvent::Leave);
     }
+  });
+
+  webview.connect_drag_begin(move |_, _| {
+    println!("drag begin");
+  });
+
+  webview.connect_drag_end(move |_, _| {
+    println!("drag end");
+  });
+
+  webview.connect_drag_failed(move |_, _, _| {
+    println!("drag failed");
+    // if listener_ref.0(FileDropEvent::Cancelled) {
+    //   glib::Propagation::Stop
+    // } else {
+    gtk::glib::Propagation::Proceed
+    // }
   });
 }
 
