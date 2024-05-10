@@ -14,6 +14,7 @@ pub(crate) fn connect_drag_event(webview: WebView, handler: Box<dyn Fn(FileDropE
 
   let listener_ref = listener.clone();
   webview.connect_drag_data_received(move |_, _, x, y, data, info, _| {
+    println!("drag_data_received, info: {}", info);
     if info == 2 {
       let uris = data.uris();
       let paths = uris
@@ -41,6 +42,7 @@ pub(crate) fn connect_drag_event(webview: WebView, handler: Box<dyn Fn(FileDropE
 
   let listener_ref = listener.clone();
   webview.connect_drag_drop(move |_, _, x, y, _| {
+    println!("drag_drop, x: {}, y: {}", x, y);
     let paths = listener_ref.1.take();
     if let Some(paths) = paths {
       listener_ref.0(FileDropEvent::Dropped {
@@ -54,6 +56,7 @@ pub(crate) fn connect_drag_event(webview: WebView, handler: Box<dyn Fn(FileDropE
 
   let listener_ref = listener.clone();
   webview.connect_drag_leave(move |_, _, time| {
+    println!("drag_leave, time: {}", time);
     if time == 0 {
       // The user cancelled the drag n drop
       listener_ref.0(FileDropEvent::Cancelled);
@@ -65,6 +68,7 @@ pub(crate) fn connect_drag_event(webview: WebView, handler: Box<dyn Fn(FileDropE
   // Called when a drag "fails" - we'll just emit a Cancelled event.
   let listener_ref = listener.clone();
   webview.connect_drag_failed(move |_, _, _| {
+    println!("drag_failed");
     if listener_ref.0(FileDropEvent::Cancelled) {
       glib::Propagation::Stop
     } else {
