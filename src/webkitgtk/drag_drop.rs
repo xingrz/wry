@@ -93,14 +93,11 @@ pub(crate) fn connect_drag_event(webview: &WebView, handler: Box<dyn Fn(DragDrop
   {
     let controller = controller.clone();
     webview.connect_drag_drop(move |_, _, x, y, _| {
-      if controller.has_entered() {
-        if let Some(paths) = controller.take_paths() {
-          controller.leave();
-          return controller.call(DragDropEvent::Drop {
-            paths,
-            position: (x, y),
-          });
-        }
+      if let Some(paths) = controller.take_paths() {
+        return controller.call(DragDropEvent::Drop {
+          paths,
+          position: (x, y),
+        });
       }
 
       false
@@ -108,7 +105,7 @@ pub(crate) fn connect_drag_event(webview: &WebView, handler: Box<dyn Fn(DragDrop
   }
 
   webview.connect_drag_leave(move |_, _, time| {
-    if time == 0 {
+    if controller.has_entered() {
       controller.leave();
       controller.call(DragDropEvent::Leave);
     }
